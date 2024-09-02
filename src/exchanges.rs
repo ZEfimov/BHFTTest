@@ -1,7 +1,6 @@
 use url::Url;
 use serde::{Deserialize, Serialize};
 use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 use std::str::FromStr;
 
 use crate::book::{OrderBook, Order};
@@ -89,6 +88,5 @@ pub fn get_exchange(ex: Exchanges) -> Box<dyn BaseExchange>
 {
     match ex {
         Exchanges::Binance => Box::new(Binance),
-        _ => panic!("Unknown Exchange"),
     }
 }

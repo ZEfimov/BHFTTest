@@ -1,22 +1,19 @@
-//use std::{ collections::HashMap, convert::Infallible, sync::Arc };
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use futures_util::stream::StreamExt;
 use exchanges::Exchanges;
-//use tokio::sync::{ mpsc, Mutex };
-//use url::Url;
 use clap::Parser;
 
 mod exchanges;
 mod book;
 #[derive(Parser)]
 struct Cli {
-    #[clap(short, long, help = "(Optional) Currency pair to subscribe to. Default: btcusd")]
+    #[clap(short, long, help = "(Optional) Currency pair to subscribe to. Default: btcusdt")]
     symbol: Option<String>,
 
-    #[clap(short, long, help = "(Optional) Update interval. Defaul 100ms")]
+    #[clap(short, long, help = "(Optional) Update interval. Default 100ms")]
     interval: Option<usize>,
 
-    #[clap(short, long, help = "(Optional) Book deep. Defaul 5")]
+    #[clap(short, long, help = "(Optional) Book deep. Default 5")]
     deep: Option<usize>,
 }
 
@@ -25,7 +22,7 @@ async fn main() {
     let args = Cli::parse();
     let interval: usize = args.interval.unwrap_or(1000);
     let deep: usize = args.deep.unwrap_or_else(||5);
-    let sym_val = args.symbol.unwrap_or_else(|| "btcusdt".to_string());
+    let sym_val = args.symbol.unwrap_or_else(|| "btcusdt".to_string()).to_lowercase();
     let symbols: Vec<&str> = sym_val.split(',').collect();
     let ex_name = Exchanges::Binance;
     let exchange = exchanges::get_exchange(ex_name);

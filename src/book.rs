@@ -98,8 +98,8 @@ impl OrderBook
     }
     fn get_wap_bids(&self)-> Decimal
     {
-        let mut w_sum = Decimal::new(0, 0);;
-        let mut qx_sum = Decimal::new(0, 0);;
+        let mut w_sum = Decimal::new(0, 0);
+        let mut qx_sum = Decimal::new(0, 0);
     
         for order in self.bids.iter() 
         {
