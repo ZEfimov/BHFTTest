@@ -1,24 +1,28 @@
-use url::Url;
-use serde::{Deserialize, Serialize};
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use url::Url;
 
-use crate::book::{OrderBook, Order};
+use crate::book::{Order, OrderBook};
 
 pub enum Exchanges {
-    Binance
+    Binance,
 }
 
-trait PrivateBaseExchange
-{
+trait PrivateBaseExchange {
     fn get_ws_url(&self) -> String;
 }
-pub trait BaseExchange
-{
-    fn generate_streams_url(&self, symbols: &[&str], update_timeout: usize, deep: usize) -> Result<Url, url::ParseError>;
+pub trait BaseExchange {
+    fn generate_streams_url(
+        &self,
+        symbols: &[&str],
+        update_timeout: usize,
+        deep: usize,
+    ) -> Result<Url, url::ParseError>;
     fn handle_message(&self, text: String);
 }
-#[derive(Debug, Serialize, Deserialize)] 
+#[derive(Debug, Serialize, Deserialize)]
+#[allow(non_snake_case)]
 struct BinanceUpdateData {
     lastUpdateId: u64,
     bids: Vec<(String, String)>,
@@ -33,18 +37,14 @@ struct BinanceStreamData {
 #[derive(Debug)]
 struct Binance;
 
-impl PrivateBaseExchange for Binance
-{
-    fn get_ws_url(&self) -> String
-    {
+impl PrivateBaseExchange for Binance {
+    fn get_ws_url(&self) -> String {
         "wss://stream.binance.com:9443".to_string()
     }
 }
 
-impl BaseExchange for Binance
-{
-    fn handle_message(&self, text: String)
-    {
+impl BaseExchange for Binance {
+    fn handle_message(&self, text: String) {
         let mut order_book = OrderBook::new();
         let message: BinanceStreamData = match serde_json::from_str(&text) {
             Ok(msg) => msg,
@@ -55,37 +55,38 @@ impl BaseExchange for Binance
         };
         order_book.last_update_id = message.data.lastUpdateId;
         //ToDo Fix code duplication
-        for bid in message.data.bids 
-        {
+        for bid in message.data.bids {
             let price = Decimal::from_str(&bid.0).unwrap();
             let quantity = Decimal::from_str(&bid.1).unwrap();
-            order_book.add_order(Order { price, quantity }, crate::book::OrderType::BID);
+            order_book.add_order(Order { price, quantity }, crate::book::OrderType::Bid);
         }
 
-        for ask in message.data.asks 
-        {
+        for ask in message.data.asks {
             let price = Decimal::from_str(&ask.0).unwrap();
             let quantity = Decimal::from_str(&ask.1).unwrap();
-            order_book.add_order(Order { price, quantity }, crate::book::OrderType::ASK);
+            order_book.add_order(Order { price, quantity }, crate::book::OrderType::Ask);
         }
-        println!("{}",message.stream);
+        println!("{}", message.stream);
         order_book.prinst_statistic();
     }
 
-    fn generate_streams_url(&self, symbols:&[&str], update_timeout: usize, deep: usize) -> Result<Url, url::ParseError>
-    {
+    fn generate_streams_url(
+        &self,
+        symbols: &[&str],
+        update_timeout: usize,
+        deep: usize,
+    ) -> Result<Url, url::ParseError> {
         let streams = symbols
-        .iter()
-        .map(|sym| format!("{}@depth{}@{}ms", sym, deep, update_timeout))
-        .collect::<Vec<_>>()
-        .join("/");
+            .iter()
+            .map(|sym| format!("{}@depth{}@{}ms", sym, deep, update_timeout))
+            .collect::<Vec<_>>()
+            .join("/");
         let url_str = format!("{}/stream?streams={}", self.get_ws_url(), streams);
         Url::parse(&url_str)
     }
 }
 
-pub fn get_exchange(ex: Exchanges) -> Box<dyn BaseExchange>
-{
+pub fn get_exchange(ex: Exchanges) -> Box<dyn BaseExchange> {
     match ex {
         Exchanges::Binance => Box::new(Binance),
     }

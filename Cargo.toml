@@ -6,13 +6,9 @@ edition = "2021"
 [dependencies]
 tokio = { version= "*", features = ["full"] }
 serde = { version = "1.0", features = ["derive"]}
-futures = { version = "0.3", default-features=false}
-tungstenite = { version="0.14.0", features = ["rustls-tls"]}
-serde_yaml = "0.9.21"
 clap = { version = "3.1.12", features = ["derive"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
 rust_decimal = "*"
-rust_decimal_macros = "*"
 futures-util = "*"
 serde_json = "*"
 url = "*"
